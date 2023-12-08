@@ -2,6 +2,8 @@
 
 int sum = 0;
 
+Dictionary<string, List<int>> gears = new Dictionary<string, List<int>>();
+
 for (int l = 0; l < lines.Length; l++) {
     string line = lines[l];
     int c = 0;
@@ -20,8 +22,10 @@ for (int l = 0; l < lines.Length; l++) {
             bool found = false;
 
             if (leftIndex >= 0 && !char.IsDigit(line[leftIndex]) && line[leftIndex] != '.') {
+                if (line[leftIndex] == '*') AddToGears(l, leftIndex, GetNumberFromChars(line, c, digitStreak));
                 found = true;
             } else if (rightIndex < line.Length && !char.IsDigit(line[rightIndex]) && line[rightIndex] != '.') {
+                if (line[rightIndex] == '*') AddToGears(l, rightIndex, GetNumberFromChars(line, c, digitStreak));
                 found = true;
             } else {
                 int endIndex = rightIndex < line.Length ? rightIndex : rightIndex - 1;
@@ -32,35 +36,26 @@ for (int l = 0; l < lines.Length; l++) {
                         col++;
                     }
                     if (col <= endIndex) {
+                        if (upperLine[col] == '*') AddToGears(l - 1, col, GetNumberFromChars(line, c, digitStreak));
                         found = true;
                     }
                 }
                 if (!found && l + 1 < lines.Length) {
-                    string upperLine = lines[l + 1];
+                    string lowerLine = lines[l + 1];
                     int col = leftIndex >= 0 ? leftIndex : leftIndex + 1;
-                    while (col <= endIndex && (char.IsDigit(upperLine[col]) || upperLine[col] == '.'))
+                    while (col <= endIndex && (char.IsDigit(lowerLine[col]) || lowerLine[col] == '.'))
                     {
                         col++;
                     }
                     if (col <= endIndex)
                     {
+                        if (lowerLine[col] == '*') AddToGears(l + 1, col, GetNumberFromChars(line, c, digitStreak));
                         found = true;
                     }
                 }
             }
 
-            if (found)
-            {
-                string numberRaw = line[c].ToString();
-                if (digitStreak > 0)
-                {
-                    for (int d = 1; d <= digitStreak; d++)
-                    {
-                        numberRaw += line[c + d].ToString();
-                    }
-                }
-                sum += int.Parse(numberRaw);
-            }
+            if (found) sum += GetNumberFromChars(line, c, digitStreak);
 
             c += digitStreak + 1;
             continue;
@@ -69,4 +64,35 @@ for (int l = 0; l < lines.Length; l++) {
     }
 }
 
+int gearSum = 0;
+List<List<int>> selectedGears = gears.Where(x => x.Value.Count == 2).ToDictionary(x => x.Key, x => x.Value).Values.ToList();
+foreach (var gear in selectedGears)
+{
+    gearSum += gear[0] * gear[1];
+}
+
 Console.WriteLine(sum);
+Console.WriteLine(gearSum);
+
+int GetNumberFromChars(string line, int start, int streak)
+{
+    string numberRaw = line[start].ToString();
+    if (streak > 0)
+    {
+        for (int d = 1; d <= streak; d++)
+        {
+            numberRaw += line[start + d].ToString();
+        }
+    }
+    return int.Parse(numberRaw);
+}
+
+void AddToGears(int row, int col, int number)
+{
+    string key = $"{row}-{col}";
+    if (gears.ContainsKey(key)) {
+        gears[key].Add(number);
+    } else {
+        gears[key] = new List<int> { number };
+    }
+}
