@@ -2,6 +2,10 @@
 
 int sum = 0;
 
+Dictionary<int, int> gameWinnings = new Dictionary<int, int>();
+Dictionary<int, int> cardCounts = new Dictionary<int, int>();
+for (int i = 0; i < lines.Length; i++) cardCounts.Add(i + 1, 1);
+
 foreach (var line in lines)
 {
     string[] separated = line.Split(':');
@@ -29,9 +33,21 @@ foreach (var line in lines)
     int value = multiplication > 0 ? 1 : 0;
     for (int m = 0; m < multiplication - 1; m++) value = value * 2;
 
-    Console.WriteLine(multiplication + " " + value);
+    gameWinnings.Add(gameID, multiplication);
 
     sum += value;
 }
 
+for (int id = 0; id < lines.Length; id++)
+{
+    for (int c = 0; c < cardCounts[id + 1]; c++)
+    {
+        for (int n = 1; n <= gameWinnings[id + 1]; n++)
+        {
+            cardCounts[id + 1 + n] += 1;
+        }
+    }
+}
+
 Console.WriteLine(sum);
+Console.WriteLine(cardCounts.Sum(x => x.Value));
